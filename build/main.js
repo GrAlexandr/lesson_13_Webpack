@@ -68,13 +68,16 @@
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__taskModel__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__taskModel__ = __webpack_require__(3);
 
 
 let options = {
 	year: 'numeric',
 	month: 'long',
 	day: 'numeric',
+	hour: 'numeric',
+	minute: 'numeric',
+	second: 'numeric'
 };
 
 let tasks = new __WEBPACK_IMPORTED_MODULE_0__taskModel__["a" /* default */]([
@@ -104,6 +107,9 @@ let tasks = new __WEBPACK_IMPORTED_MODULE_0__taskModel__["a" /* default */]([
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__controller_task__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__css_task_css__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__css_task_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__css_task_css__);
+
 
 
 window.addEventListener('load', function () {
@@ -116,45 +122,150 @@ window.addEventListener('load', function () {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = taskController;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__view_task__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__view_taskAddForm__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__model_task__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__model_task__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__view_task__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__view_taskAddForm__ = __webpack_require__(5);
 
 
 
 
 function taskController(rootElement) {
 
-	Object(__WEBPACK_IMPORTED_MODULE_0__view_task__["a" /* default */])(rootElement, __WEBPACK_IMPORTED_MODULE_2__model_task__["a" /* default */], {
+	Object(__WEBPACK_IMPORTED_MODULE_1__view_task__["a" /* default */])(rootElement, __WEBPACK_IMPORTED_MODULE_0__model_task__["a" /* default */], {
 		onDone,
 		onMove,
 		onDelete
 	});
 
-	Object(__WEBPACK_IMPORTED_MODULE_1__view_taskAddForm__["a" /* default */])(rootElement, {
+	Object(__WEBPACK_IMPORTED_MODULE_2__view_taskAddForm__["a" /* default */])(rootElement, {
 		onSubmit
 	});
 
 	function onDone(task, status) {
-		__WEBPACK_IMPORTED_MODULE_2__model_task__["a" /* default */].done(task, status);
+		__WEBPACK_IMPORTED_MODULE_0__model_task__["a" /* default */].done(task, status);
 	}
 
 	function onMove(task) {
-		__WEBPACK_IMPORTED_MODULE_2__model_task__["a" /* default */].move(task);
+		__WEBPACK_IMPORTED_MODULE_0__model_task__["a" /* default */].move(task);
 	}
 
 	function onDelete(task) {
-		__WEBPACK_IMPORTED_MODULE_2__model_task__["a" /* default */].delete(task);
+		__WEBPACK_IMPORTED_MODULE_0__model_task__["a" /* default */].delete(task);
 	}
 
 	function onSubmit(text) {
-		__WEBPACK_IMPORTED_MODULE_2__model_task__["a" /* default */].add(text);
+		__WEBPACK_IMPORTED_MODULE_0__model_task__["a" /* default */].add(text);
 	}
 
 }
 
 /***/ }),
 /* 3 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__task__ = __webpack_require__(0);
+
+
+function TaskModel(tasks) {
+
+	let arrTasks = JSON.parse(localStorage.getItem('arrTasks'));
+	this.listeners = [];
+	tasks = arrTasks || tasks;
+	tasks.forEach(task => {
+		this.push(task);
+	});
+}
+
+let options = {
+	year: 'numeric',
+	month: 'long',
+	day: 'numeric',
+	hour: 'numeric',
+	minute: 'numeric',
+	second: 'numeric'
+};
+
+function addToLocalStor() {
+	let arrTasks = [];
+	for (let i = 0; i < __WEBPACK_IMPORTED_MODULE_0__task__["a" /* default */].length; i++) {
+		arrTasks.push(__WEBPACK_IMPORTED_MODULE_0__task__["a" /* default */][i]);
+	}
+	localStorage.setItem('arrTasks', JSON.stringify(arrTasks));
+}
+
+TaskModel.prototype = Object.create(Array.prototype);
+TaskModel.prototype.constructor = TaskModel;
+
+TaskModel.prototype.done = function (task, status) {
+	task.done = status;
+	addToLocalStor();
+	this.trigger('done', [task]);
+};
+
+TaskModel.prototype.add = function (text) {
+	let task = {
+		text,
+		done: false,
+		date: new Date().toLocaleString('en-US', options)
+	};
+	this.push(task);
+	addToLocalStor();
+	this.trigger('add', [task]);
+};
+
+TaskModel.prototype.move = function (task) {
+	let index = this.indexOf(task);
+
+	if (event.target.className === 'move-up') {
+		if (index !== 0) {
+			let inter = this[index - 1];
+
+			this[index - 1] = task;
+			this[index] =	inter;
+		}
+	} else {
+		if (index !== this.length - 1) {
+			let	inter = this[index + 1];
+
+			this[index + 1] = task;
+			this[index] =	inter;
+		}
+	}
+	addToLocalStor();
+	this.trigger('move', [task]);
+};
+
+TaskModel.prototype.delete = function (task) {
+	let index = this.indexOf(task);
+	if (index >= 0) {
+		this.splice(index, 1);
+	}
+	addToLocalStor();
+	this.trigger('delete', [task]);
+};
+
+TaskModel.prototype.on = function (event, callback) {
+	this.listeners.push({
+		event,
+		callback
+	});
+};
+
+TaskModel.prototype.trigger = function (event, args) {
+	let tasks = this;
+	this.listeners.forEach(listener => {
+		if (listener.event === event) {
+			listener.callback.apply(tasks, args);
+		}
+	});
+
+};
+
+/* harmony default export */ __webpack_exports__["a"] = (TaskModel);
+
+/***/ }),
+/* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -243,7 +354,7 @@ function taskView(rootElement, tasks, actions) {
 }
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -255,7 +366,6 @@ function taskAddFromView(rootElement, actions) {
         <input type="text" name="text"/>
         <input type="submit" value="Add"/>
     `;
-
 	form.addEventListener('submit', function (event) {
 		let input = form.querySelector('[name=text]');
 		let text = input.value.trim();
@@ -265,115 +375,15 @@ function taskAddFromView(rootElement, actions) {
 		}
 		event.preventDefault();
 	});
-
 	rootElement.appendChild(form);
 
 }
 
 /***/ }),
-/* 5 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/* 6 */
+/***/ (function(module, exports) {
 
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__model_task__ = __webpack_require__(0);
-
-
-function TaskModel(tasks) {
-
-	let arrTasks = JSON.parse(localStorage.getItem('arrTasks'));
-	this.listeners = [];
-	tasks = arrTasks || tasks;
-	tasks.forEach(task => {
-		this.push(task);
-	});
-}
-
-let options = {
-	year: 'numeric',
-	month: 'long',
-	day: 'numeric',
-	hour: 'numeric',
-	minute: 'numeric',
-	second: 'numeric'
-};
-
-function addToLocalStor() {
-	let arrTasks = [];
-	for (let i = 0; i < __WEBPACK_IMPORTED_MODULE_0__model_task__["a" /* default */].length; i++) {
-		arrTasks.push(__WEBPACK_IMPORTED_MODULE_0__model_task__["a" /* default */][i]);
-	}
-	localStorage.setItem('arrTasks', JSON.stringify(arrTasks));
-}
-
-TaskModel.prototype = Object.create(Array.prototype);
-TaskModel.prototype.constructor = TaskModel;
-
-TaskModel.prototype.done = function (task, status) {
-	task.done = status;
-	addToLocalStor();
-	this.trigger('done', [task]);
-};
-
-TaskModel.prototype.add = function (text) {
-	let task = {
-		text,
-		done: false,
-		date: new Date().toLocaleString('en-US', options)
-	};
-	this.push(task);
-	addToLocalStor();
-	this.trigger('add', [task]);
-};
-
-TaskModel.prototype.move = function (task) {
-	let index = this.indexOf(task);
-
-	if (event.target.className === 'move-up') {
-		if (index !== 0) {
-			let inter = this[index - 1];
-
-			this[index - 1] = task;
-			this[index] =	inter;
-		}
-	} else {
-		if (index !== this.length - 1) {
-			let	inter = this[index + 1];
-
-			this[index + 1] = task;
-			this[index] =	inter;
-		}
-	}
-	addToLocalStor();
-	this.trigger('move', [task]);
-};
-
-TaskModel.prototype.delete = function (task) {
-	let index = this.indexOf(task);
-	if (index >= 0) {
-		this.splice(index, 1);
-	}
-	addToLocalStor();
-	this.trigger('delete', [task]);
-};
-
-TaskModel.prototype.on = function (event, callback) {
-	this.listeners.push({
-		event,
-		callback
-	});
-};
-
-TaskModel.prototype.trigger = function (event, args) {
-	let tasks = this;
-	this.listeners.forEach(listener => {
-		if (listener.event === event) {
-			listener.callback.apply(tasks, args);
-		}
-	});
-
-};
-
-/* harmony default export */ __webpack_exports__["a"] = (TaskModel);
+// removed by extract-text-webpack-plugin
 
 /***/ })
 /******/ ]);

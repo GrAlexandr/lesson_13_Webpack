@@ -4,8 +4,7 @@ const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 const PATHS = {
 	source: path.join(__dirname, 'js/todo'),
-	build: path.join(__dirname, 'build/'),
-	template: path.join(__dirname, 'index.html')
+	build: path.join(__dirname, 'build')
 };
 
 module.exports = {
@@ -27,9 +26,9 @@ module.exports = {
 		]
 	},
 	plugins: [
-		new ExtractTextPlugin("styles.css"),
+		new ExtractTextPlugin('[name].css'),
 		new HtmlWebpackPlugin({
-			template: PATHS.template
-		}),
+			template: 'index.html'
+		})
 	]
 };

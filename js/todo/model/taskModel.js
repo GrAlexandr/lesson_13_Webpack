@@ -1,4 +1,4 @@
-import tasks from '../model/task';
+import tasks from './task';
 
 function TaskModel(tasks) {
 

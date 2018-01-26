@@ -5,7 +5,6 @@ export default function taskAddFromView(rootElement, actions) {
         <input type="text" name="text"/>
         <input type="submit" value="Add"/>
     `;
-
 	form.addEventListener('submit', function (event) {
 		let input = form.querySelector('[name=text]');
 		let text = input.value.trim();
@@ -15,7 +14,6 @@ export default function taskAddFromView(rootElement, actions) {
 		}
 		event.preventDefault();
 	});
-
 	rootElement.appendChild(form);
 
 }
